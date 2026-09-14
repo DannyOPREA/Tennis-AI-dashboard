@@ -19,7 +19,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.2.1"
 
 
 def is_frozen() -> bool:
@@ -65,7 +65,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file_encoding="utf-8", extra="ignore")
 
     gemini_api_key: str = ""
-    ollama_url: str = ""
+    ollama_url: str = "http://127.0.0.1:11434"
     data_dir: Path = Field(default_factory=lambda: app_home() / "data")
     host_name: str = ""
     energy_price_per_kwh: float = 0.25
