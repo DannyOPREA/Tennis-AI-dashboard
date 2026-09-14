@@ -109,6 +109,8 @@ DEFAULT_PRICES = {
 
 
 def load_registry(path=None) -> Registry:
+    from playground.providers.mock import mock_enabled
+
     path = path or get_settings().registry_path
     with open(path, encoding="utf-8") as f:
         raw = yaml.safe_load(f) or {}
@@ -127,6 +129,8 @@ def load_registry(path=None) -> Registry:
 
     models: dict[str, ModelConfig] = {}
     for m in raw.get("models") or []:
+        if m.get("provider") == "mock" and not mock_enabled():
+            continue
         prices = {**DEFAULT_PRICES, **(m.get("prices") or {})}
         cfg = ModelConfig(
             id=str(m["id"]),

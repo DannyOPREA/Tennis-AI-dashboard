@@ -194,22 +194,6 @@ models:
     licence: Apache-2.0
     enabled: true
 
-  - id: qwen3.5-2b
-    display_name: Qwen 3.5 2B (Ollama, CPU smoke test)
-    provider: ollama
-    model_id: qwen3.5:2b
-    base_url: ${OLLAMA_URL}
-    input_modes: [frames]
-    params:
-      temperature: 0.4
-      max_tokens: 1024
-    tokens_per_frame: 350
-    max_images: 256
-    prices: {text_in: 0, image_in: 0, video_in: 0, audio_in: 0, cached_in: 0, out: 0}
-    vram_note: "~1.5 GB; small enough to run on CPU. For pipeline testing, not for quality judgement."
-    licence: Apache-2.0
-    enabled: true
-
   # ---------------- Optional OpenAI-compatible endpoints (untested rows) ----------------
   - id: llamacpp-local
     display_name: llama.cpp server (frames)
@@ -224,7 +208,8 @@ models:
     enabled: false
 
   # ---------------- Development only ----------------
-  # Fake model for exercising the UI without a key or GPU. Available only when PLAYGROUND_MOCK=1.
+  # Fake models for exercising the UI without a key or GPU. Listed only when PLAYGROUND_MOCK=1;
+  # the client never sees them.
   - id: mock-local
     display_name: Mock local model (dev)
     provider: mock
