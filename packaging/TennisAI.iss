@@ -53,8 +53,8 @@ Root: HKCU; Subkey: "Environment"; ValueType: string; ValueName: "OLLAMA_KEEP_AL
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "Start {#AppName}"; Flags: nowait postinstall skipifsilent
 
-[UninstallDelete]
-Type: filesandordirs; Name: "{app}"
+; No [UninstallDelete]: the uninstaller removes only the files it installed, so the client's
+; data (%LOCALAPPDATA%\TennisAI\data and .env, which live inside {app}) survives an uninstall.
 
 [Code]
 var
