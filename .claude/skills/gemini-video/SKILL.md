@@ -119,3 +119,16 @@ Keep the request under 20 MB or upload frames through the Files API.
 - 429 on free tier: back off and mark the run `error`, do not retry silently more than twice.
 - `FAILED` file state after upload: re-upload once, then fail the run.
 - Safety blocks: `response.prompt_feedback.block_reason`; store in `error`.
+
+## Measured on 2026-09-14 (trust these over the docs)
+
+- `gemini-2.5-flash` and `gemini-2.5-flash-lite` appear in `models.list()` but `generateContent` returns
+  404 "no longer available to new users". Use `gemini-3.1-flash-lite`, `gemini-3.5-flash-lite`,
+  `gemini-3.6-flash`, `gemini-3.8-flash`.
+- Native video at `MEDIA_RESOLUTION_LOW`: a 4 s clip with audio = 364 video tokens (≈ 91 tokens/s;
+  audio was not reported as a separate modality).
+- Frames mode: 4 JPEG frames (448 px long edge) = 1056 image tokens (≈ 264 per frame).
+- Files API cache works: the second run on the same video reported `upload_ms 0`, `cache_hit true`.
+- Thinking: 3.6 Flash spent 341 thinking tokens on 128 output tokens with `thinking_level: low`;
+  3.1 / 3.5 Flash-Lite with `minimal` reported no thinking tokens.
+

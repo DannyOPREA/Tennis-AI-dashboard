@@ -6,8 +6,8 @@ def test_health_and_registry(client):
     assert h["status"] == "ok" and h["host"] == "test-host" and h["gemini_configured"] is False
     models = client.get("/api/models").json()
     ids = {m["id"] for m in models}
-    assert "gemini-2.5-flash-lite" in ids and "qwen3.5-9b" in ids
-    gem = next(m for m in models if m["id"] == "gemini-2.5-flash-lite")
+    assert "gemini-3.1-flash-lite" in ids and "qwen3.5-9b" in ids
+    gem = next(m for m in models if m["id"] == "gemini-3.1-flash-lite")
     assert gem["availability"] == {"available": False, "reason": "GEMINI_API_KEY not set"}
     presets = client.get("/api/frame-presets").json()
     assert {p["key"] for p in presets} == {"light16", "dense24", "quick"}
@@ -62,7 +62,7 @@ def test_video_upload_and_batch_lifecycle(client, sample_video):
             "frame_preset": "quick",
             "targets": [
                 {"model_config_id": "qwen3.5-9b", "input_mode": "frames"},
-                {"model_config_id": "gemini-2.5-flash-lite", "input_mode": "native_video"},
+                {"model_config_id": "gemini-3.1-flash-lite", "input_mode": "native_video"},
             ],
         },
     )
@@ -70,7 +70,7 @@ def test_video_upload_and_batch_lifecycle(client, sample_video):
     rows = {e["model_config_id"]: e for e in est.json()}
     assert rows["qwen3.5-9b"]["frames"] == 4 and rows["qwen3.5-9b"]["est_tokens_in"] > 4 * 350
     assert "OLLAMA_URL not set" in rows["qwen3.5-9b"]["warnings"]
-    assert rows["gemini-2.5-flash-lite"]["exact"] is False
+    assert rows["gemini-3.1-flash-lite"]["exact"] is False
 
     # Gemini is not configured, so the run must fail fast with a recorded error and populated payload
     b = client.post(
@@ -79,7 +79,7 @@ def test_video_upload_and_batch_lifecycle(client, sample_video):
             "video_id": v["id"],
             "prompt_version_id": pv_id,
             "frame_preset": "quick",
-            "targets": [{"model_config_id": "gemini-2.5-flash-lite", "input_mode": "frames"}],
+            "targets": [{"model_config_id": "gemini-3.1-flash-lite", "input_mode": "frames"}],
             "blind": True,
         },
     )

@@ -30,51 +30,54 @@ frame_presets:
 
 models:
   # ---------------- Gemini (API) ----------------
-  - id: gemini-2.5-flash-lite
-    display_name: Gemini 2.5 Flash-Lite
+  # gemini-2.5-flash and gemini-2.5-flash-lite are listed by the API but return 404
+  # "no longer available to new users" (verified 2026-09-14), so they are not offered here.
+  - id: gemini-3.1-flash-lite
+    display_name: Gemini 3.1 Flash-Lite
     provider: gemini
-    model_id: gemini-2.5-flash-lite
+    model_id: gemini-3.1-flash-lite
     input_modes: [native_video, frames]
     params:
       temperature: 0.4
       max_tokens: 4096
-      thinking_budget: 0
+      thinking_level: minimal
       media_resolution: MEDIA_RESOLUTION_LOW
-    tokens_per_frame: 258
+    tokens_per_frame: 264  # measured: 1056 tokens for 4 JPEG frames (frames mode); native video ≈ 91 tokens/s at LOW
     prices:
-      text_in: 0.10
-      image_in: 0.10
-      video_in: 0.10
-      audio_in: 0.30
-      cached_in: 0.025
-      out: 0.40
+      text_in: 0.25
+      image_in: 0.25
+      video_in: 0.25
+      audio_in: 0.50
+      cached_in: 0.0625
+      out: 1.50
       source_url: https://ai.google.dev/gemini-api/docs/pricing
       valid_from: "2026-09-14"
     licence: proprietary
-    notes: Cheapest Gemini for video; the only Flash family where thinking can be fully disabled.
+    notes: Cheapest Gemini currently open to new accounts. Thinking level minimal is the default but does not guarantee thinking is off.
     enabled: true
 
-  - id: gemini-2.5-flash
-    display_name: Gemini 2.5 Flash
+  - id: gemini-3.5-flash-lite
+    display_name: Gemini 3.5 Flash-Lite
     provider: gemini
-    model_id: gemini-2.5-flash
+    model_id: gemini-3.5-flash-lite
     input_modes: [native_video, frames]
     params:
       temperature: 0.4
       max_tokens: 4096
-      thinking_budget: 0
+      thinking_level: minimal
       media_resolution: MEDIA_RESOLUTION_LOW
-    tokens_per_frame: 258
+    tokens_per_frame: 264  # measured: 1056 tokens for 4 JPEG frames (frames mode); native video ≈ 91 tokens/s at LOW
     prices:
       text_in: 0.30
       image_in: 0.30
       video_in: 0.30
-      audio_in: 1.00
+      audio_in: 0.30
       cached_in: 0.075
       out: 2.50
       source_url: https://ai.google.dev/gemini-api/docs/pricing
       valid_from: "2026-09-14"
     licence: proprietary
+    notes: Google's suggested replacement for 2.5 Flash-Lite.
     enabled: true
 
   - id: gemini-3.6-flash
@@ -87,7 +90,7 @@ models:
       max_tokens: 4096
       thinking_level: low
       media_resolution: MEDIA_RESOLUTION_LOW
-    tokens_per_frame: 70
+    tokens_per_frame: 264  # measured: 1056 tokens for 4 JPEG frames (frames mode); native video ≈ 91 tokens/s at LOW
     prices:
       text_in: 0.75
       image_in: 0.75
@@ -111,7 +114,7 @@ models:
       max_tokens: 4096
       thinking_level: low
       media_resolution: MEDIA_RESOLUTION_LOW
-    tokens_per_frame: 70
+    tokens_per_frame: 264  # measured: 1056 tokens for 4 JPEG frames (frames mode); native video ≈ 91 tokens/s at LOW
     prices:
       text_in: 0.75
       image_in: 0.75
