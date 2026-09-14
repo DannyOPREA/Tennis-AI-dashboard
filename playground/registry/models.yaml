@@ -1,0 +1,230 @@
+# Model catalogue: single source of truth for the playground and for scripts/pull-models.ps1.
+# Prices are USD per 1M tokens. Runs store an immutable snapshot of the row used, so editing
+# a row never rewrites history. Reload without restart: POST /api/models/reload.
+#
+# provider: gemini | ollama | openai_compat
+# input_modes: native_video (Gemini only) | frames (JPEG frames extracted by ffmpeg)
+# tokens_per_frame: used for Ollama num_ctx sizing and pre-launch estimates (frames mode)
+frame_presets:
+  light16:
+    label: Light (16 GB)
+    description: 2 fps, long edge 512 px, max 180 frames. Safe on a 16 GB card with an 8B model.
+    fps: 2
+    long_edge: 512
+    max_frames: 180
+    jpeg_quality: 85
+  dense24:
+    label: Dense (24 GB)
+    description: 4 fps, long edge 512 px, max 360 frames. Needs a 24 GB card or a small model.
+    fps: 4
+    long_edge: 512
+    max_frames: 360
+    jpeg_quality: 85
+  quick:
+    label: Quick
+    description: 1 fps, long edge 448 px, max 90 frames. Fast sanity checks.
+    fps: 1
+    long_edge: 448
+    max_frames: 90
+    jpeg_quality: 80
+
+models:
+  # ---------------- Gemini (API) ----------------
+  - id: gemini-2.5-flash-lite
+    display_name: Gemini 2.5 Flash-Lite
+    provider: gemini
+    model_id: gemini-2.5-flash-lite
+    input_modes: [native_video, frames]
+    params:
+      temperature: 0.4
+      max_tokens: 4096
+      thinking_budget: 0
+      media_resolution: MEDIA_RESOLUTION_LOW
+    tokens_per_frame: 258
+    prices:
+      text_in: 0.10
+      image_in: 0.10
+      video_in: 0.10
+      audio_in: 0.30
+      cached_in: 0.025
+      out: 0.40
+      source_url: https://ai.google.dev/gemini-api/docs/pricing
+      valid_from: "2026-09-14"
+    licence: proprietary
+    notes: Cheapest Gemini for video; the only Flash family where thinking can be fully disabled.
+    enabled: true
+
+  - id: gemini-2.5-flash
+    display_name: Gemini 2.5 Flash
+    provider: gemini
+    model_id: gemini-2.5-flash
+    input_modes: [native_video, frames]
+    params:
+      temperature: 0.4
+      max_tokens: 4096
+      thinking_budget: 0
+      media_resolution: MEDIA_RESOLUTION_LOW
+    tokens_per_frame: 258
+    prices:
+      text_in: 0.30
+      image_in: 0.30
+      video_in: 0.30
+      audio_in: 1.00
+      cached_in: 0.075
+      out: 2.50
+      source_url: https://ai.google.dev/gemini-api/docs/pricing
+      valid_from: "2026-09-14"
+    licence: proprietary
+    enabled: true
+
+  - id: gemini-3.6-flash
+    display_name: Gemini 3.6 Flash
+    provider: gemini
+    model_id: gemini-3.6-flash
+    input_modes: [native_video, frames]
+    params:
+      temperature: 0.4
+      max_tokens: 4096
+      thinking_level: low
+      media_resolution: MEDIA_RESOLUTION_LOW
+    tokens_per_frame: 70
+    prices:
+      text_in: 0.75
+      image_in: 0.75
+      video_in: 0.75
+      audio_in: 0.75
+      cached_in: 0.1875
+      out: 3.75
+      source_url: https://ai.google.dev/gemini-api/docs/pricing
+      valid_from: "2026-09-14"
+    licence: proprietary
+    notes: Promotional price until 2026-12-31; doubles on 2027-01-01. Thinking cannot be disabled (floor = low).
+    enabled: true
+
+  - id: gemini-3.8-flash
+    display_name: Gemini 3.8 Flash
+    provider: gemini
+    model_id: gemini-3.8-flash
+    input_modes: [native_video, frames]
+    params:
+      temperature: 0.4
+      max_tokens: 4096
+      thinking_level: low
+      media_resolution: MEDIA_RESOLUTION_LOW
+    tokens_per_frame: 70
+    prices:
+      text_in: 0.75
+      image_in: 0.75
+      video_in: 0.75
+      audio_in: 0.75
+      cached_in: 0.1875
+      out: 3.75
+      source_url: https://ai.google.dev/gemini-api/docs/pricing
+      valid_from: "2026-09-14"
+    licence: proprietary
+    notes: Newest Flash. Promotional price until 2026-12-31. Thinking floor = low.
+    enabled: true
+
+  # ---------------- Local via Ollama (frames only) ----------------
+  # Tags must be verified with the model-scout agent before the client pulls them.
+  - id: qwen3.5-9b
+    display_name: Qwen 3.5 9B (Ollama)
+    provider: ollama
+    model_id: qwen3.5:9b
+    base_url: ${OLLAMA_URL}
+    input_modes: [frames]
+    params:
+      temperature: 0.4
+      max_tokens: 4096
+    tokens_per_frame: 350
+    max_images: 256
+    prices: {text_in: 0, image_in: 0, video_in: 0, audio_in: 0, cached_in: 0, out: 0}
+    vram_note: "~6.6 GB weights at Q4; use the Light (16 GB) preset"
+    licence: Apache-2.0
+    enabled: true
+
+  - id: minicpm-v4.5
+    display_name: MiniCPM-V 4.5 (Ollama)
+    provider: ollama
+    model_id: minicpm-v4.5
+    base_url: ${OLLAMA_URL}
+    input_modes: [frames]
+    params:
+      temperature: 0.4
+      max_tokens: 4096
+    tokens_per_frame: 96
+    max_images: 256
+    prices: {text_in: 0, image_in: 0, video_in: 0, audio_in: 0, cached_in: 0, out: 0}
+    vram_note: "~6.1 GB weights; heavy visual-token compression so dense presets are affordable"
+    licence: Apache-2.0
+    enabled: true
+
+  - id: qwen3-vl-8b
+    display_name: Qwen3-VL 8B (Ollama)
+    provider: ollama
+    model_id: qwen3-vl:8b
+    base_url: ${OLLAMA_URL}
+    input_modes: [frames]
+    params:
+      temperature: 0.4
+      max_tokens: 4096
+    tokens_per_frame: 350
+    max_images: 256
+    prices: {text_in: 0, image_in: 0, video_in: 0, audio_in: 0, cached_in: 0, out: 0}
+    vram_note: "~6 GB weights at Q4; most mature tooling"
+    licence: Apache-2.0
+    enabled: true
+
+  - id: gemma4-12b
+    display_name: Gemma 4 12B (Ollama)
+    provider: ollama
+    model_id: gemma4:12b
+    base_url: ${OLLAMA_URL}
+    input_modes: [frames]
+    params:
+      temperature: 0.4
+      max_tokens: 4096
+    tokens_per_frame: 280
+    max_images: 128
+    prices: {text_in: 0, image_in: 0, video_in: 0, audio_in: 0, cached_in: 0, out: 0}
+    vram_note: "~8 GB weights at Q4; verify multi-image support"
+    licence: Apache-2.0
+    enabled: true
+
+  # ---------------- Optional OpenAI-compatible endpoints (untested rows) ----------------
+  - id: llamacpp-local
+    display_name: llama.cpp server (frames)
+    provider: openai_compat
+    model_id: default
+    base_url: http://127.0.0.1:8080/v1
+    input_modes: [frames]
+    params: {temperature: 0.4, max_tokens: 4096}
+    tokens_per_frame: 300
+    prices: {text_in: 0, image_in: 0, video_in: 0, audio_in: 0, cached_in: 0, out: 0}
+    licence: depends on model
+    enabled: false
+
+  # ---------------- Development only ----------------
+  # Fake model for exercising the UI without a key or GPU. Available only when PLAYGROUND_MOCK=1.
+  - id: mock-local
+    display_name: Mock local model (dev)
+    provider: mock
+    model_id: mock-echo
+    input_modes: [frames]
+    params: {temperature: 0, max_tokens: 1024, delay_s: 6}
+    tokens_per_frame: 300
+    prices: {text_in: 0, image_in: 0, video_in: 0, audio_in: 0, cached_in: 0, out: 0}
+    licence: n/a
+    notes: Development stand-in. Streams a canned French answer; numbers are synthetic.
+    enabled: true
+  - id: mock-api
+    display_name: Mock API model (dev)
+    provider: mock
+    model_id: mock-echo-api
+    input_modes: [native_video, frames]
+    params: {temperature: 0, max_tokens: 1024, delay_s: 3}
+    tokens_per_frame: 258
+    prices: {text_in: 0.30, image_in: 0.30, video_in: 0.30, audio_in: 1.0, cached_in: 0.075, out: 2.5}
+    licence: n/a
+    notes: Development stand-in with Gemini 2.5 Flash prices so cost charts have data.
+    enabled: true

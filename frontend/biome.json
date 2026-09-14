@@ -1,0 +1,25 @@
+{
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"files": {
+		"includes": ["src/**", "!src/components/ui/**"]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"lineWidth": 120
+	},
+	"css": {
+		"parser": { "tailwindDirectives": true },
+		"linter": { "enabled": true }
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"complexity": { "noImportantStyles": "off" }
+		}
+	},
+	"assist": {
+		"actions": { "source": { "organizeImports": "on" } }
+	}
+}

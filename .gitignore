@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Data (videos, frames, database, logs)
+data/
+
+# Frontend
+frontend/node_modules/
+frontend/.vite/
+# frontend/dist is committed on purpose (client PC has no Node)
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Claude Code local overrides
+.claude/settings.local.json
+.claude/*.local.md

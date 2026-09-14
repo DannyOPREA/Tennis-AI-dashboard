@@ -1,0 +1,259 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/instrument-sans";
+@import "@fontsource-variable/bricolage-grotesque";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+	--font-sans: "Instrument Sans Variable", "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+	--font-heading: "Bricolage Grotesque Variable", "Bricolage Grotesque", var(--font-sans);
+	--font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+	--color-sidebar-ring: var(--sidebar-ring);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar: var(--sidebar);
+	--color-chart-5: var(--chart-5);
+	--color-chart-4: var(--chart-4);
+	--color-chart-3: var(--chart-3);
+	--color-chart-2: var(--chart-2);
+	--color-chart-1: var(--chart-1);
+	--color-ring: var(--ring);
+	--color-input: var(--input);
+	--color-border: var(--border);
+	--color-destructive: var(--destructive);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-accent: var(--accent);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-muted: var(--muted);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-secondary: var(--secondary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-primary: var(--primary);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-popover: var(--popover);
+	--color-card-foreground: var(--card-foreground);
+	--color-card: var(--card);
+	--color-foreground: var(--foreground);
+	--color-background: var(--background);
+	/* Product tokens */
+	--color-terre: var(--terre);
+	--color-terre-soft: var(--terre-soft);
+	--color-provider-gemini: var(--provider-gemini);
+	--color-provider-ollama: var(--provider-ollama);
+	--color-provider-openai: var(--provider-openai);
+	--color-status-queued: var(--status-queued);
+	--color-status-running: var(--status-running);
+	--color-status-done: var(--status-done);
+	--color-status-error: var(--status-error);
+	--color-status-interrupted: var(--status-interrupted);
+	--color-status-cancelled: var(--status-cancelled);
+	--radius-sm: 4px;
+	--radius-md: 6px;
+	--radius-lg: 8px;
+	--radius-xl: 10px;
+	--radius-2xl: 14px;
+	--radius-3xl: 18px;
+	--radius-4xl: 999px;
+}
+
+:root {
+	/* Named tokens: Chalk, Card, Baseline, Sideline, Net, Terre battue */
+	--chalk: #f6f7f5;
+	--baseline: #1f2421;
+	--sideline: #5f6662;
+	--net: #dde1db;
+	--terre: #9e3b26;
+	--terre-soft: #fbede8;
+
+	--background: var(--chalk);
+	--foreground: var(--baseline);
+	--card: #ffffff;
+	--card-foreground: var(--baseline);
+	--popover: #ffffff;
+	--popover-foreground: var(--baseline);
+	--primary: var(--terre);
+	--primary-foreground: #ffffff;
+	--secondary: #edefea;
+	--secondary-foreground: var(--baseline);
+	--muted: #edefea;
+	--muted-foreground: var(--sideline);
+	--accent: #edefea;
+	--accent-foreground: var(--baseline);
+	--destructive: #b3261e;
+	--border: var(--net);
+	--input: #d3d8d1;
+	--ring: var(--terre);
+	--chart-1: #2a78d6;
+	--chart-2: #0d8f5f;
+	--chart-3: #4a3aa7;
+	--chart-4: #c86a4e;
+	--chart-5: #9e3b26;
+	--radius: 0.625rem;
+	--sidebar: #ffffff;
+	--sidebar-foreground: var(--baseline);
+	--sidebar-primary: var(--terre);
+	--sidebar-primary-foreground: #ffffff;
+	--sidebar-accent: #edefea;
+	--sidebar-accent-foreground: var(--baseline);
+	--sidebar-border: var(--net);
+	--sidebar-ring: var(--terre);
+
+	--provider-gemini: #2a78d6;
+	--provider-ollama: #0d8f5f;
+	--provider-openai: #4a3aa7;
+	--provider-unknown: #5f6662;
+
+	--status-queued: #5f6662;
+	--status-running: #9e3b26;
+	--status-done: #1f7a4d;
+	--status-error: #b3261e;
+	--status-interrupted: #8a6100;
+	--status-cancelled: #5f6662;
+
+	/* Sequential cost ramp (one hue, light to dark) */
+	--cost-1: #fbede8;
+	--cost-2: #f2cfc4;
+	--cost-3: #e3a08d;
+	--cost-4: #c86a4e;
+	--cost-5: #9e3b26;
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+	html {
+		@apply font-sans;
+		font-size: 14px;
+		-webkit-font-smoothing: antialiased;
+	}
+	body {
+		@apply bg-background text-foreground;
+		line-height: 1.55;
+	}
+	h1,
+	h2,
+	h3 {
+		text-wrap: balance;
+	}
+	:focus-visible {
+		outline: 2px solid var(--terre);
+		outline-offset: 2px;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		*::before,
+		*::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
+	}
+}
+
+@utility font-heading {
+	font-family: var(--font-heading);
+	font-variation-settings:
+		"opsz" 48,
+		"wdth" 100;
+	letter-spacing: -0.01em;
+}
+
+@utility tabular {
+	font-variant-numeric: tabular-nums;
+}
+
+/* Markdown output from the models */
+.prose-output {
+	font-size: 15px;
+	line-height: 1.65;
+	max-width: 68ch;
+}
+.prose-output > * + * {
+	margin-top: 0.8em;
+}
+.prose-output h1,
+.prose-output h2,
+.prose-output h3,
+.prose-output h4 {
+	font-weight: 600;
+	line-height: 1.3;
+	margin-top: 1.4em;
+}
+.prose-output h1 {
+	font-size: 1.25em;
+}
+.prose-output h2 {
+	font-size: 1.15em;
+}
+.prose-output h3,
+.prose-output h4 {
+	font-size: 1.02em;
+}
+.prose-output ul,
+.prose-output ol {
+	padding-left: 1.4em;
+}
+.prose-output ul {
+	list-style: disc;
+}
+.prose-output ol {
+	list-style: decimal;
+}
+.prose-output li + li {
+	margin-top: 0.25em;
+}
+.prose-output strong {
+	font-weight: 600;
+}
+.prose-output code {
+	font-family: var(--font-mono);
+	font-size: 0.9em;
+	background: var(--muted);
+	padding: 0.1em 0.3em;
+	border-radius: 4px;
+}
+.prose-output pre {
+	font-family: var(--font-mono);
+	font-size: 0.85em;
+	background: var(--muted);
+	padding: 0.8em 1em;
+	border-radius: 6px;
+	overflow-x: auto;
+}
+.prose-output blockquote {
+	border-left: 2px solid var(--net);
+	padding-left: 1em;
+	color: var(--sideline);
+}
+.prose-output table {
+	border-collapse: collapse;
+	font-size: 0.93em;
+}
+.prose-output th,
+.prose-output td {
+	border: 1px solid var(--net);
+	padding: 0.3em 0.6em;
+	text-align: left;
+}
+
+/* Live dot for running status */
+@keyframes live-pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.35;
+	}
+}
+.live-dot {
+	animation: live-pulse 1.4s ease-in-out infinite;
+}

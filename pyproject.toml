@@ -1,0 +1,48 @@
+[project]
+name = "tennis-playground"
+version = "0.1.0"
+description = "Model playground for AI tennis coaching: run a video through Gemini and local vision models, record cost/latency/tokens, rate outputs, compare on a dashboard."
+requires-python = ">=3.12,<3.15"
+dependencies = [
+    "fastapi>=0.141.1",
+    "google-genai>=2,<3",
+    "httpx>=0.28.1",
+    "nvidia-ml-py>=13.610.43",
+    "pydantic-settings>=2.15.0",
+    "python-multipart>=0.0.32",
+    "pyyaml>=6.0.3",
+    "sqlmodel>=0.0.42",
+    "sse-starlette>=3.4.11",
+    "starlette>=0.41",
+    "uvicorn[standard]>=0.53.0",
+]
+
+[project.scripts]
+playground = "playground.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+module-name = "playground"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.7",
+]
