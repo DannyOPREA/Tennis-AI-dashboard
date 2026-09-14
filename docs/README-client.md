@@ -89,7 +89,7 @@ The **Settings** page holds everything from the Welcome page and a few more thin
 | Problem | What to do |
 |---|---|
 | The app does not open, or the browser shows "cannot connect" | Look for the ball icon in the system tray (click the small arrow next to the clock). If it is there, click it and choose **Open Tennis AI**. If it is not there, start the app again from the Start menu. If it still fails, send Danny the file `app.log` from the `logs` folder inside the data folder (see "Where your data lives" below). |
-| "Ollama unreachable" or "Ollama is not running" | Start **Ollama** from the Start menu; a llama icon appears in the tray. Then click **Refresh** on the Settings page. If Ollama is not in the Start menu, install it from <https://ollama.com/download>, then restart the Tennis AI app. |
+| "Ollama unreachable" or "Ollama is not running" | Start **Ollama** from the Start menu; a llama icon appears in the tray. Then click **Refresh** on the Settings page. If Ollama is not in the Start menu, install it from <https://ollama.com/download>, then restart the Tennis AI app. If Ollama shows a window saying "Run Ollama" or a black window says **"timed out waiting for server to start"**, see the section "When Ollama will not start" below. |
 | A model download failed or stopped | Open **Settings**, find the model and click **Download** again; it continues where it left off. Check the free disk space shown on the same page: each model needs a few GB free. |
 | A run fails with "out of memory", "CUDA" or "VRAM", or the PC becomes very slow | The model and its frames do not fit in the graphics card. Use the **Light (16 GB)** or **Quick** preset, choose a smaller model, and close other programs that use the graphics card (games, video editors). |
 | Gemini error "API key not valid", 400 or 403 | The key is wrong or has expired. Open **Settings**, paste the key again and click **Test connection**. If it still fails, ask Danny for a new key. |
@@ -99,7 +99,31 @@ The **Settings** page holds everything from the Welcome page and a few more thin
 | The app behaves strangely and you want a clean restart | Click the tray icon, choose **Quit**, wait a few seconds, then start the app again from the Start menu. If the tray icon has disappeared, restart the PC. |
 | Anything else | Send Danny a screenshot of the error and the `app.log` file from the `logs` folder inside the data folder. |
 
-### Where your data lives
+### When Ollama will not start
+
+Ollama is a separate program. If it opens with a "Run Ollama" window, or a black command window
+says "timed out waiting for server to start", the Ollama server on your PC is not managing to start.
+Try these in order:
+
+1. **Restart the PC**, then open Ollama from the Start menu and click Refresh in Tennis AI Settings.
+   A fresh restart fixes most cases.
+2. **Find the real error.** Right-click the llama icon in the tray and choose Quit. Then open the
+   Start menu, type `cmd`, press Enter, type `ollama serve` and press Enter. The error is shown on
+   the first lines. Send a screenshot of that window to Danny. The same text is in the file
+   `server.log` in `C:\Users\<your name>\AppData\Local\Ollama`.
+3. If the error mentions **"bind"** or **"access permissions"**, Windows has reserved the port that
+   Ollama uses. Fix: open the Start menu, type "environment variables", open "Edit environment
+   variables for your account", click New, name `OLLAMA_HOST`, value `127.0.0.1:11435`, OK.
+   Quit and reopen Ollama. Then in Tennis AI open Settings, Local models, Advanced, and set the
+   address to `http://127.0.0.1:11435`.
+4. If your antivirus shows a warning about `ollama.exe`, allow it. If Windows Firewall asks whether
+   Ollama may use the network, click Allow.
+5. Still stuck: uninstall Ollama (Apps & features), download it again from
+   <https://ollama.com/download> and reinstall. Your Tennis AI data is not affected.
+
+Gemini models work without Ollama, so you can keep using the app while this is sorted out.
+
+## Where your data lives
 
 Everything the app produces is in the **data folder**: your videos, the extracted frames, the results database and the logs. The quickest way to open it is the tray icon, **Open data folder**, or the "Tennis AI data folder" shortcut in the Start menu. Its full location is `C:\Users\<your name>\AppData\Local\TennisAI\data` and it is also shown on the Settings page.
 
