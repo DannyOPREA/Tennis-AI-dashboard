@@ -90,3 +90,16 @@ with `model-scout` before enabling a row.
 No VLM can measure ball speed from 1-10 fps frames (a 100 km/h ball moves ~14 m between frames
 at 2 fps). Any km/h in an output is a guess. Real speed is a phase-2 deliverable
 (TrackNet ball detection + court homography at native frame rate).
+
+## Measured on 2026-09-14 (Ollama 0.34, CPU-only Linux box, qwen3.5:2b)
+
+- Reasoning models return hidden thinking in `message.thinking`; with the default `think` the 2B
+  model burned all 1024 `num_predict` tokens thinking and returned an empty `content`
+  (`done_reason: length`). The provider now sends `"think": false` unless `params.think: true`.
+- 4 JPEG frames at 448 px cost 655 prompt tokens on qwen3.5:2b (~120 per frame), well under the
+  350 per frame budgeted in `models.yaml`; the budget is conservative on purpose (bigger frames
+  and models cost more).
+- The 2B model confidently described a tennis player in a colour-bar test pattern; every Gemini
+  model said there was no player. Hallucination on off-topic input is a useful quality check.
+- `/api/ps` reported `size_vram` ≈ 2.3 GB even though this machine has no GPU, so treat
+  `model_vram_mb` as Ollama's own claim, and rely on the NVML sampler for real VRAM deltas.

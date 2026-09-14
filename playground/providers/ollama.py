@@ -127,6 +127,9 @@ class OllamaProvider(Provider):
             "messages": messages,
             "stream": True,
             "keep_alive": params.get("keep_alive", "30m"),
+            # Reasoning models (Qwen 3.x, Gemma 4...) otherwise burn the whole num_predict budget on
+            # hidden thinking and return an empty answer. Set params.think: true to measure it.
+            "think": bool(params.get("think", False)),
             "options": {
                 "num_ctx": num_ctx,
                 "temperature": params.get("temperature", 0.4),
@@ -138,6 +141,7 @@ class OllamaProvider(Provider):
             text="", frames_sent=len(images), video_seconds_sent=ctx.video.duration_s
         )
         chunks: list[str] = []
+        thinking_chars = 0
         final: dict[str, Any] = {}
         first_at: float | None = None
         t0 = time.perf_counter()
@@ -157,7 +161,10 @@ class OllamaProvider(Provider):
                     obj = json.loads(line)
                     if obj.get("error"):
                         raise ProviderError(str(obj["error"]))
-                    content = (obj.get("message") or {}).get("content")
+                    msg = obj.get("message") or {}
+                    if msg.get("thinking"):
+                        thinking_chars += len(msg["thinking"])
+                    content = msg.get("content")
                     if content:
                         if first_at is None:
                             first_at = time.perf_counter()
@@ -176,7 +183,14 @@ class OllamaProvider(Provider):
         result.model_ms = int((t1 - t0) * 1000) - result.model_load_ms
         result.ttft_ms = int((first_at - t0) * 1000) if first_at else None
         prompt_tokens = final.get("prompt_eval_count")
-        result.usage = Usage(in_total=prompt_tokens, out=final.get("eval_count"))
+        eval_count = final.get("eval_count")
+        thinking_tokens = None
+        if thinking_chars and eval_count:
+            # Ollama's eval_count covers thinking + answer; split it by character share.
+            share = thinking_chars / max(1, thinking_chars + len("".join(chunks)))
+            thinking_tokens = int(round(eval_count * share))
+            eval_count = eval_count - thinking_tokens
+        result.usage = Usage(in_total=prompt_tokens, out=eval_count, thinking=thinking_tokens)
         result.truncated_suspected = truncation_suspected(
             prompt_tokens, len(images), tokens_per_frame, num_ctx
         )
