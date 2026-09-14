@@ -50,3 +50,13 @@ uv run pytest -q tests/test_metrics_contract.py
 3. Watch the SSE stream on the Run detail page, confirm tokens by modality and cost appear.
 4. Rate the run. Open Dashboard and check the row aggregates.
 5. Kill the server mid-run and restart: the run must show `interrupted`.
+
+## Packaged app (desktop launcher)
+
+- `uv run playground-desktop --no-tray --no-browser --port 8123` runs the same launcher the client
+  gets, from the dev tree. `TENNISAI_HOME=/tmp/x` isolates its `.env` and `data/`.
+- Freeze locally to validate the spec: `uv run pyinstaller --noconfirm --distpath build/dist
+  --workpath build/work packaging/tennisai.spec`, then run `build/dist/TennisAI/TennisAI --no-tray
+  --no-browser --port 8123` and curl `/api/settings` (expect `"packaged": true`).
+- Mock models for UI work: `PLAYGROUND_MOCK=1 uv run playground`.
+

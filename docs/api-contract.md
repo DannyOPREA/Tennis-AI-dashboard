@@ -126,3 +126,40 @@ type PointRow = { run_id: number; batch_id: number; model_config_id: string; dis
 
 ## Errors
 `{ detail: string }` with 400/404/409/422/503. 503 when a provider is not configured (e.g. missing Gemini key).
+
+## Settings and setup (added for the client-facing install)
+
+Configuration is edited from the UI and persisted to the app's env file (`.env` in the project during
+development, `%LOCALAPPDATA%\TennisAI\.env` in the packaged Windows app). Changes take effect
+immediately, no restart.
+
+- `GET /api/settings` → `Settings`
+- `PUT /api/settings` `{ gemini_api_key?: string, ollama_url?: string, host_name?: string, energy_price_per_kwh?: number }` → `Settings`. Pass an empty string to clear a value. The key is never returned, only a hint.
+- `POST /api/settings/test-gemini` `{ gemini_api_key?: string }` (uses the saved key when omitted) → `{ ok: boolean, message: string, models: string[] }` — makes one tiny text call; `models` lists the registry's Gemini ids reachable with this key.
+
+```ts
+type Settings = {
+  gemini_key_set: boolean; gemini_key_hint: string|null;  // e.g. "…k3Qz"
+  ollama_url: string; host_name: string; energy_price_per_kwh: number;
+  data_dir: string; env_file: string; packaged: boolean; version: string;
+}
+```
+
+- `GET /api/setup` → `SetupStatus` — drives the first-run flow. The frontend shows `/welcome` while `complete` is false (the user can skip; skipping is remembered in localStorage).
+
+```ts
+type SetupStatus = { gemini_key_set: boolean; gemini_ok: boolean|null; ollama_reachable: boolean; ollama_version: string|null; models_available: number; models_total_local: number; videos: number; gpu: { available: boolean; name: string|null; vram_total_mb: number|null }; complete: boolean }
+```
+
+- `GET /api/ollama/status` → `{ reachable: boolean; version: string|null; url: string; installed: OllamaModel[]; disk_free_gb: number|null; models_dir: string|null }`
+- `POST /api/ollama/pull` `{ model_config_id: string }` → `PullJob` (202) — starts a background download of that registry row's Ollama tag; idempotent while running.
+- `GET /api/ollama/pulls` → `PullJob[]` (poll every second while any job is `pulling`)
+- `DELETE /api/ollama/pull/{model_config_id}` → 204 cancels a running pull
+- `DELETE /api/ollama/models/{model_config_id}` → 204 removes the downloaded model from Ollama
+
+```ts
+type OllamaModel = { name: string; size_bytes: number; modified_at: string; model_config_id: string|null }
+type PullJob = { model_config_id: string; tag: string; status: "pulling"|"done"|"error"|"cancelled"; completed_bytes: number; total_bytes: number|null; percent: number|null; message: string; started_at: string; finished_at: string|null }
+```
+
+`GET /api/models` availability now also reports `"downloading"` as a reason while a pull is running.

@@ -11,6 +11,7 @@ SAMPLE = Path(__file__).parent / "fixtures" / "sample.mp4"
 @pytest.fixture(scope="session")
 def data_dir(tmp_path_factory):
     d = tmp_path_factory.mktemp("data")
+    os.environ["TENNISAI_HOME"] = str(d)
     os.environ["DATA_DIR"] = str(d)
     os.environ["HOST_NAME"] = "test-host"
     os.environ["GEMINI_API_KEY"] = ""

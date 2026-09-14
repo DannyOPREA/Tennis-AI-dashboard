@@ -1,4 +1,4 @@
-import { FilmIcon, PencilIcon, PlayIcon, UploadIcon } from "lucide-react";
+import { FilmIcon, InfoIcon, PencilIcon, PlayIcon, UploadIcon, XIcon } from "lucide-react";
 import { type DragEvent, useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, errorMessage, uploadVideo } from "@/api/client";
@@ -21,6 +21,7 @@ import { Progress } from "@/components/ui/progress";
 import { t } from "@/i18n";
 import { fmtBytes, fmtClock, fmtDate, fmtDims, fmtPercent } from "@/lib/format";
 import { useAsync, useDocumentTitle } from "@/lib/hooks";
+import { useSetup } from "@/lib/setup";
 import { cn } from "@/lib/utils";
 
 const ACCEPT = ["video/mp4", "video/quicktime", "video/webm"];
@@ -86,6 +87,7 @@ export function LibraryPage() {
 
 	return (
 		<>
+			<SetupBanner />
 			<PageHeader
 				title={t.library.title}
 				description={t.library.description}
@@ -174,6 +176,47 @@ export function LibraryPage() {
 				}}
 			/>
 		</>
+	);
+}
+
+const BANNER_KEY = "tennisai.setupBannerDismissed";
+
+/** "Setup incomplete" reminder, shown only after the user skipped the welcome flow. */
+function SetupBanner() {
+	const setup = useSetup();
+	const [dismissed, setDismissed] = useState(() => {
+		try {
+			return window.sessionStorage.getItem(BANNER_KEY) === "1";
+		} catch {
+			return false;
+		}
+	});
+	if (dismissed || !setup.skipped || !setup.status || setup.status.complete) return null;
+	return (
+		<div role="status" className="mb-4 flex items-center gap-2.5 rounded-lg border bg-card px-3 py-2 text-sm">
+			<InfoIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+			<span className="min-w-0 flex-1">
+				{t.welcome.banner}{" "}
+				<Link to="/settings" className="font-medium underline-offset-2 hover:underline">
+					{t.welcome.bannerLink}
+				</Link>
+			</span>
+			<Button
+				variant="ghost"
+				size="icon-xs"
+				aria-label={t.welcome.bannerDismiss}
+				onClick={() => {
+					setDismissed(true);
+					try {
+						window.sessionStorage.setItem(BANNER_KEY, "1");
+					} catch {
+						// storage blocked: dismiss for this render only
+					}
+				}}
+			>
+				<XIcon />
+			</Button>
+		</div>
 	);
 }
 

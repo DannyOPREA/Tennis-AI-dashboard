@@ -1,0 +1,104 @@
+name: Build Windows installer
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv python install 3.13
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: uv sync
+      - run: uv run pytest -q
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - run: npm ci
+        working-directory: frontend
+      - run: npx tsc --noEmit -p tsconfig.app.json && npx biome check src
+        working-directory: frontend
+
+  windows:
+    needs: test
+    runs-on: windows-latest
+    env:
+      FFMPEG_URL: https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version from tag
+        id: ver
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF#refs/tags/v}"; else v="0.0.0-dev.${GITHUB_RUN_NUMBER}"; fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          sed -i "s/^APP_VERSION = .*/APP_VERSION = \"$v\"/" playground/config.py
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - uses: astral-sh/setup-uv@v6
+      - run: uv python install 3.13
+      - run: uv sync
+
+      - name: Download ffmpeg (gyan.dev release-essentials, GPL build)
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri $env:FFMPEG_URL -OutFile ffmpeg.zip
+          Expand-Archive ffmpeg.zip -DestinationPath ffmpeg-tmp
+          New-Item -ItemType Directory -Force packaging\ffmpeg | Out-Null
+          Get-ChildItem ffmpeg-tmp -Recurse -Include ffmpeg.exe,ffprobe.exe | Copy-Item -Destination packaging\ffmpeg
+          Get-ChildItem ffmpeg-tmp -Recurse -Include LICENSE* | Select-Object -First 1 | Copy-Item -Destination packaging\ffmpeg\LICENSE-ffmpeg.txt
+          Get-ChildItem packaging\ffmpeg
+
+      - name: Freeze with PyInstaller
+        run: |
+          uv run python packaging/make_icon.py
+          uv run pyinstaller --noconfirm --distpath build/dist --workpath build/work packaging/tennisai.spec
+
+      - name: Smoke test the frozen app
+        shell: pwsh
+        run: |
+          $env:TENNISAI_HOME = "$env:RUNNER_TEMP\tennisai-home"
+          $p = Start-Process -FilePath build\dist\TennisAI\TennisAI.exe -ArgumentList "--no-browser","--no-tray","--port","8123" -PassThru
+          $ok = $false
+          for ($i = 0; $i -lt 60; $i++) {
+            Start-Sleep -Seconds 1
+            try { $r = Invoke-RestMethod http://127.0.0.1:8123/api/health; if ($r.status -eq "ok") { $ok = $true; break } } catch {}
+          }
+          $models = Invoke-RestMethod http://127.0.0.1:8123/api/models
+          $settings = Invoke-RestMethod http://127.0.0.1:8123/api/settings
+          Stop-Process -Id $p.Id -Force
+          if (-not $ok) { Get-Content "$env:TENNISAI_HOME\data\logs\app.log"; throw "frozen app did not become healthy" }
+          if (-not $settings.packaged) { throw "packaged flag not set" }
+          "health ok, $($models.Count) models, version $($settings.version)"
+
+      - name: Build installer (Inno Setup)
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /DAppVersion=${{ steps.ver.outputs.version }} packaging\TennisAI.iss
+          Get-ChildItem build\*.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TennisAI-Setup-${{ steps.ver.outputs.version }}
+          path: build/TennisAI-Setup-*.exe
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/TennisAI-Setup-*.exe
+          generate_release_notes: true

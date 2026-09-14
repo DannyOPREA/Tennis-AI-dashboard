@@ -1,6 +1,14 @@
-import { BarChart3Icon, FilmIcon, LayersIcon, MenuIcon, MessageSquareTextIcon, PlayIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import {
+	BarChart3Icon,
+	FilmIcon,
+	LayersIcon,
+	MenuIcon,
+	MessageSquareTextIcon,
+	PlayIcon,
+	SlidersHorizontalIcon,
+} from "lucide-react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { api } from "@/api/client";
 import type { Health } from "@/api/types";
 import { Button } from "@/components/ui/button";
@@ -21,7 +29,18 @@ const NAV = [
 		end: false,
 	},
 	{ to: "/dashboard", label: t.nav.dashboard, icon: BarChart3Icon, end: false },
+	{ to: "/settings", label: t.nav.settings, icon: SlidersHorizontalIcon, end: false },
 ];
+
+type HealthApi = { health: Health | null; error: string | null; reload: () => Promise<void> };
+const HealthContext = createContext<HealthApi | null>(null);
+
+/** Backend health as shown in the rail; `reload` re-checks immediately (e.g. after saving settings). */
+export function useHealth(): HealthApi {
+	const ctx = useContext(HealthContext);
+	if (!ctx) throw new Error("useHealth must be used within AppShell");
+	return ctx;
+}
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
 	return (
@@ -74,13 +93,30 @@ function Wordmark() {
 	);
 }
 
-function HealthDot({ ok, label, detail }: { ok: boolean | null; label: string; detail: string }) {
+function HealthDot({
+	ok,
+	label,
+	detail,
+	to,
+}: {
+	ok: boolean | null;
+	label: string;
+	detail: string;
+	/** When set, the detail becomes a link (used to send a failing check to Settings). */
+	to?: string;
+}) {
 	const color = ok === null ? "var(--net)" : ok ? "var(--status-done)" : "var(--status-error)";
 	return (
 		<li className="flex items-center gap-2 text-xs" title={detail}>
 			<span aria-hidden className="size-2 rounded-full" style={{ background: color }} />
 			<span className="text-foreground">{label}</span>
-			<span className="ml-auto truncate text-muted-foreground">{detail}</span>
+			{to ? (
+				<Link to={to} className="ml-auto truncate text-muted-foreground underline-offset-2 hover:underline">
+					{detail}
+				</Link>
+			) : (
+				<span className="ml-auto truncate text-muted-foreground">{detail}</span>
+			)}
 		</li>
 	);
 }
@@ -105,10 +141,12 @@ export function HealthPanel({ health, error }: { health: Health | null; error: s
 					ok={h ? h.gemini_configured : null}
 					label={t.health.gemini}
 					detail={h ? (h.gemini_configured ? t.health.geminiOk : t.health.geminiMissing) : t.health.checking}
+					to={h && !h.gemini_configured ? "/settings" : undefined}
 				/>
 				<HealthDot
 					ok={h ? h.ollama_reachable : null}
 					label={t.health.ollama}
+					to={h && !h.ollama_reachable ? "/settings" : undefined}
 					detail={
 						h
 							? h.ollama_reachable
@@ -149,47 +187,54 @@ export function AppShell() {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: close the drawer on navigation
 	useEffect(() => setOpen(false), [location.pathname]);
 
+	const healthApi = useMemo<HealthApi>(
+		() => ({ health: health.data, error: health.error, reload: health.reload }),
+		[health.data, health.error, health.reload],
+	);
+
 	return (
-		<div className="min-h-dvh md:grid md:grid-cols-[208px_1fr]">
-			<a
-				href="#main"
-				className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-card focus:px-3 focus:py-1.5"
-			>
-				{t.app.skipToContent}
-			</a>
+		<HealthContext.Provider value={healthApi}>
+			<div className="min-h-dvh md:grid md:grid-cols-[208px_1fr]">
+				<a
+					href="#main"
+					className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-card focus:px-3 focus:py-1.5"
+				>
+					{t.app.skipToContent}
+				</a>
 
-			{/* Desktop rail */}
-			<aside className="sticky top-0 hidden h-dvh flex-col gap-6 border-r bg-sidebar py-4 pr-3 pl-3 md:flex">
-				<Wordmark />
-				<NavList />
-				<div className="mt-auto">
-					<HealthPanel health={health.data} error={health.error} />
-				</div>
-			</aside>
+				{/* Desktop rail */}
+				<aside className="sticky top-0 hidden h-dvh flex-col gap-6 border-r bg-sidebar py-4 pr-3 pl-3 md:flex">
+					<Wordmark />
+					<NavList />
+					<div className="mt-auto">
+						<HealthPanel health={health.data} error={health.error} />
+					</div>
+				</aside>
 
-			{/* Mobile top bar */}
-			<header className="sticky top-0 z-30 flex h-12 items-center justify-between border-b bg-sidebar pr-2 pl-1 md:hidden">
-				<Wordmark />
-				<Sheet open={open} onOpenChange={setOpen}>
-					<SheetTrigger render={<Button variant="ghost" size="icon" aria-label={t.app.menu} />}>
-						<MenuIcon />
-					</SheetTrigger>
-					<SheetContent side="left" className="w-72 gap-6 p-3">
-						<SheetTitle className="sr-only">{t.app.menu}</SheetTitle>
-						<Wordmark />
-						<NavList onNavigate={() => setOpen(false)} />
-						<div className="mt-auto">
-							<HealthPanel health={health.data} error={health.error} />
-						</div>
-					</SheetContent>
-				</Sheet>
-			</header>
+				{/* Mobile top bar */}
+				<header className="sticky top-0 z-30 flex h-12 items-center justify-between border-b bg-sidebar pr-2 pl-1 md:hidden">
+					<Wordmark />
+					<Sheet open={open} onOpenChange={setOpen}>
+						<SheetTrigger render={<Button variant="ghost" size="icon" aria-label={t.app.menu} />}>
+							<MenuIcon />
+						</SheetTrigger>
+						<SheetContent side="left" className="w-72 gap-6 p-3">
+							<SheetTitle className="sr-only">{t.app.menu}</SheetTitle>
+							<Wordmark />
+							<NavList onNavigate={() => setOpen(false)} />
+							<div className="mt-auto">
+								<HealthPanel health={health.data} error={health.error} />
+							</div>
+						</SheetContent>
+					</Sheet>
+				</header>
 
-			<main id="main" className="min-w-0 px-4 py-5 md:px-6 md:py-6">
-				<div className="mx-auto w-full max-w-[1280px]">
-					<Outlet context={{ health: health.data }} />
-				</div>
-			</main>
-		</div>
+				<main id="main" className="min-w-0 px-4 py-5 md:px-6 md:py-6">
+					<div className="mx-auto w-full max-w-[1280px]">
+						<Outlet />
+					</div>
+				</main>
+			</div>
+		</HealthContext.Provider>
 	);
 }

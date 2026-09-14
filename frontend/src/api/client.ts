@@ -9,16 +9,22 @@ import type {
 	Estimate,
 	EstimateBody,
 	FramePreset,
+	GeminiTestResult,
 	Health,
 	ModelConfig,
 	NewPromptVersionBody,
+	OllamaStatus,
 	PointRow,
 	Prompt,
+	PullJob,
 	Rating,
 	RatingBody,
 	Run,
 	RunFrames,
 	RunStatus,
+	Settings,
+	SettingsUpdate,
+	SetupStatus,
 	SummaryRow,
 	Video,
 } from "./types";
@@ -142,6 +148,30 @@ export const api = {
 		filters: () => request<DashboardFilters>("/dashboard/filters"),
 		summary: (q: DashboardQuery) => request<SummaryRow[]>(`/dashboard/summary${qs(q)}`),
 		runs: (q: DashboardQuery) => request<PointRow[]>(`/dashboard/runs${qs(q)}`),
+	},
+
+	settings: {
+		get: () => request<Settings>("/settings"),
+		update: (body: SettingsUpdate) => request<Settings>("/settings", { method: "PUT", body: json(body) }),
+		/** Omit the key to test the saved one. */
+		testGemini: (geminiApiKey?: string) =>
+			request<GeminiTestResult>("/settings/test-gemini", {
+				method: "POST",
+				body: json(geminiApiKey ? { gemini_api_key: geminiApiKey } : {}),
+			}),
+	},
+
+	setup: () => request<SetupStatus>("/setup"),
+
+	ollama: {
+		status: () => request<OllamaStatus>("/ollama/status"),
+		pull: (modelConfigId: string) =>
+			request<PullJob>("/ollama/pull", { method: "POST", body: json({ model_config_id: modelConfigId }) }),
+		pulls: () => request<PullJob[]>("/ollama/pulls"),
+		cancelPull: (modelConfigId: string) =>
+			request<void>(`/ollama/pull/${encodeURIComponent(modelConfigId)}`, { method: "DELETE" }),
+		removeModel: (modelConfigId: string) =>
+			request<void>(`/ollama/models/${encodeURIComponent(modelConfigId)}`, { method: "DELETE" }),
 	},
 
 	globalEventsUrl: () => `${API_BASE}/events`,

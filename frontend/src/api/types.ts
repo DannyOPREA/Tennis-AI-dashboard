@@ -203,11 +203,7 @@ export type Health = {
 	gemini_configured: boolean;
 	ollama_url: string | null;
 	ollama_reachable: boolean;
-	gpu: {
-		available: boolean;
-		name: string | null;
-		vram_total_mb: number | null;
-	};
+	gpu: GpuInfo;
 };
 
 export type DashboardFilters = {
@@ -315,6 +311,78 @@ export type GlobalRunEvent = {
 	batch_id: number;
 	status: RunStatus;
 	stage: string | null;
+};
+
+// Settings and setup (see "Settings and setup" in docs/api-contract.md)
+export type Settings = {
+	gemini_key_set: boolean;
+	/** e.g. "…k3Qz"; the key itself is never returned */
+	gemini_key_hint: string | null;
+	ollama_url: string;
+	host_name: string;
+	energy_price_per_kwh: number;
+	data_dir: string;
+	env_file: string;
+	packaged: boolean;
+	version: string;
+};
+
+/** Pass an empty string to clear a value. */
+export type SettingsUpdate = {
+	gemini_api_key?: string;
+	ollama_url?: string;
+	host_name?: string;
+	energy_price_per_kwh?: number;
+};
+
+export type GeminiTestResult = { ok: boolean; message: string; models: string[] };
+
+export type GpuInfo = {
+	available: boolean;
+	name: string | null;
+	vram_total_mb: number | null;
+};
+
+export type SetupStatus = {
+	gemini_key_set: boolean;
+	gemini_ok: boolean | null;
+	ollama_reachable: boolean;
+	ollama_version: string | null;
+	models_available: number;
+	models_total_local: number;
+	videos: number;
+	gpu: GpuInfo;
+	complete: boolean;
+};
+
+export type OllamaModel = {
+	name: string;
+	size_bytes: number;
+	modified_at: string;
+	model_config_id: string | null;
+};
+
+export type OllamaStatus = {
+	reachable: boolean;
+	version: string | null;
+	url: string;
+	installed: OllamaModel[];
+	disk_free_gb: number | null;
+	models_dir: string | null;
+};
+
+export type PullStatus = "pulling" | "done" | "error" | "cancelled";
+
+export type PullJob = {
+	model_config_id: string;
+	tag: string;
+	status: PullStatus;
+	completed_bytes: number;
+	total_bytes: number | null;
+	percent: number | null;
+	message: string;
+	started_at: string;
+	finished_at: string | null;
 };
 
 export type ApiErrorBody = { detail: string };

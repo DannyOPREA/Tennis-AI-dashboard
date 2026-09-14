@@ -8,7 +8,9 @@ dependencies = [
     "google-genai>=2,<3",
     "httpx>=0.28.1",
     "nvidia-ml-py>=13.610.43",
+    "pillow>=12.3.0",
     "pydantic-settings>=2.15.0",
+    "pystray>=0.19.5",
     "python-multipart>=0.0.32",
     "pyyaml>=6.0.3",
     "sqlmodel>=0.0.42",
@@ -19,6 +21,7 @@ dependencies = [
 
 [project.scripts]
 playground = "playground.cli:main"
+playground-desktop = "playground.desktop:main"
 
 [build-system]
 requires = ["uv_build>=0.12.3,<0.13.0"]
@@ -42,6 +45,7 @@ asyncio_mode = "auto"
 
 [dependency-groups]
 dev = [
+    "pyinstaller>=6.22.3",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "ruff>=0.16.7",

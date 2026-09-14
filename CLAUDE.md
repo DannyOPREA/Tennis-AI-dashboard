@@ -27,7 +27,23 @@ uv run pytest                   # backend tests
 cd frontend && npm run build    # writes frontend/dist (committed: the client PC has no Node)
 cd frontend && npx biome check --write .
 uv run ruff format && uv run ruff check --fix
+uv run playground-desktop --no-tray  # the packaged entry point (server + browser + tray)
+uv run pyinstaller --noconfirm --distpath build/dist --workpath build/work packaging/tennisai.spec
 ```
+
+## Packaging for the client (Windows)
+
+- `.github/workflows/release.yml` builds `TennisAI-Setup-<version>.exe` on a Windows runner when a
+  `v*` tag is pushed (or manually via workflow_dispatch): frontend build, PyInstaller freeze of
+  `playground/desktop.py` with `frontend/dist`, `models.yaml`, `seed.yaml` and a downloaded ffmpeg,
+  a headless smoke test of the frozen exe, then Inno Setup (`packaging/TennisAI.iss`).
+- Packaged layout: read-only resources under `sys._MEIPASS`; writable home
+  `%LOCALAPPDATA%\TennisAI` (`.env`, `data/`). `TENNISAI_HOME` overrides the home (tests set it).
+  `playground/config.py` owns these paths; never hard-code `PROJECT_ROOT` for runtime files.
+- All client configuration happens in the UI (Settings and Welcome pages) through
+  `/api/settings`, `/api/setup` and `/api/ollama/*`. Mock models exist only with `PLAYGROUND_MOCK=1`.
+- Bump `APP_VERSION` in `playground/config.py` and tag `vX.Y.Z` to release. The PowerShell scripts in
+  `scripts/` are the manual fallback, not the client path.
 
 Copy `.env.example` to `.env` and set `GEMINI_API_KEY`. Hooks in `.claude/hooks/` format edited
 files and block staging `.env`, `data/` or `.db` files.

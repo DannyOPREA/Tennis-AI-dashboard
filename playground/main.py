@@ -9,7 +9,16 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from playground.api import batches, dashboard, health, models_api, prompts, runs, videos
+from playground.api import (
+    batches,
+    dashboard,
+    health,
+    models_api,
+    prompts,
+    runs,
+    settings_api,
+    videos,
+)
 from playground.config import get_settings
 from playground.db import init_db, session_scope
 from playground.prompts.seed import seed_prompts
@@ -63,6 +72,7 @@ def create_app() -> FastAPI:
         batches.router,
         runs.router,
         dashboard.router,
+        settings_api.router,
     ):
         app.include_router(r)
 

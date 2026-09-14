@@ -6,6 +6,7 @@ from fastapi import APIRouter
 
 from playground.providers.registry import get_provider
 from playground.registry.loader import get_registry, reload_registry
+from playground.runs.pulls import pulls
 
 router = APIRouter(prefix="/api", tags=["models"])
 
@@ -15,6 +16,9 @@ async def _with_availability(models):
         d = cfg.to_dict()
         if not cfg.enabled:
             d["availability"] = {"available": False, "reason": "disabled in models.yaml"}
+            return d
+        if pulls.is_pulling(cfg.id):
+            d["availability"] = {"available": False, "reason": "downloading"}
             return d
         try:
             ok, reason = await get_provider(cfg.provider).check_availability(d)
